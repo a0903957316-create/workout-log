@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="訓練容量紀錄" />
+  <title>訓練容量紀錄</title>
+  <style>
+    :root {
+      --bg: #121214;
+      --card: #1e1e24;
+      --accent: #ff6b35;
+      --accent-hover: #e85a27;
+      --text: #f4f4f6;
+      --muted: #9a9aa2;
+      --border: #2e2e36;
+      --danger: #ff4757;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom));
+      background-color: var(--bg);
+      color: var(--text);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    h1 {
+      font-size: 21px;
+      margin: 0;
+      font-weight: 700;
+    }
+    .date-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    input[type="date"], select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="date"] {
+      flex: 1;
+    }
+    select {
+      flex: 1.1;
+    }
+    .summary-card {
+      background: linear-gradient(135deg, #25252d 0%, #1a1a20 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 10px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+    .summary-item span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .summary-item strong {
+      font-size: 21px;
+      color: var(--accent);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .mini-btn {
+      background: #282830;
+      color: #e4e4ec;
+      border: 1px solid #353540;
+      border-radius: 7px;
+      padding: 4px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .mini-btn:active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      background: #141418;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 11px;
+      border-radius: 10px;
+      font-size: 17px;
+      outline: none;
+      text-align: center;
+    }
+    input[type="text"] {
+      text-align: left;
+    }
+    input:focus {
+      border-color: var(--accent);
+    }
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      margin-bottom: 14px;
+    }
+    .tag {
+      background: #282830;
+      color: #d4d4dc;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .tag:active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .stepper-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stepper-col {
+      background: #18181d;
+      border: 1px solid #292932;
+      border-radius: 12px;
+      padding: 8px;
+    }
+    .stepper-col label {
+      display: block;
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .step-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .step-btn {
+      background: #2a2a33;
+      color: #f4f4f6;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 0;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .step-btn:active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding: 0 2px;
+    }
+    .stats-bar strong {
+      color: var(--text);
+      font-size: 15px;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:active {
+      background: var(--accent-hover);
+    }
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .list-header h2 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--muted);
+    }
+    .action-links {
+      display: flex;
+      gap: 12px;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .link-btn.danger {
+      color: var(--danger);
+    }
+    .record-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .record-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .record-info h3 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+    }
+    .record-sets-line {
+      font-size: 14px;
+      color: #d8d8e2;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .record-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .record-vol {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 16px;
+    }
+    .row-btns {
+      display: flex;
+      gap: 6px;
+    }
+    .small-act-btn {
+      background: #2a2a33;
+      color: #c8c8d2;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .small-act-btn.del {
+      color: #ff7b86;
+    }
+    .empty-tip {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>訓練容量紀錄</h1>
+    <button type="button" class="mini-btn" onclick="jumpToToday()">回到今天</button>
+  </header>
+
+  <div class="date-controls">
+    <input type="date" id="targetDate" onchange="onDateInputChange()" />
+    <select id="historyDateSelect" onchange="onHistorySelectChange()">
+      <option value="">歷史紀錄選單</option>
+    </select>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-item">
+      <span>當日總容量</span>
+      <strong id="dayVolume">0 kg</strong>
+    </div>
+    <div class="summary-item">
+      <span>當日總組數</span>
+      <strong id="daySets">0 組</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label-row">
+      <label for="exerciseName">動作名稱</label>
+      <button type="button" class="mini-btn" onclick="copyLastSet()">套用上一組</button>
+    </div>
+    <input type="text" id="exerciseName" placeholder="輸入動作或點選下方快選" />
+    <div class="quick-tags">
+      <button type="button" class="tag" onclick="setExercise('槓鈴臥推')">槓鈴臥推</button>
+      <button type="button" class="tag" onclick="setExercise('槓鈴深蹲')">槓鈴深蹲</button>
+      <button type="button" class="tag" onclick="setExercise('負重引體向上')">負重引體向上</button>
+      <button type="button" class="tag" onclick="setExercise('哈克RDL')">哈克RDL</button>
+      <button type="button" class="tag" onclick="setExercise('保加利亞分腿蹲')">保加利亞分腿蹲</button>
+      <button type="button" class="tag" onclick="setExercise('啞鈴肩推')">啞鈴肩推</button>
+    </div>
+
+    <div class="stepper-grid">
+      <div class="stepper-col">
+        <label for="weight">重量 (kg)</label>
+        <input type="number" id="weight" inputmode="decimal" step="0.5" placeholder="0" oninput="updatePreview()" />
+        <div class="step-btns">
+          <button type="button" class="step-btn" onclick="stepVal('weight', -2.5)">-2.5</button>
+          <button type="button" class="step-btn" onclick="stepVal('weight', 2.5)">+2.5</button>
+        </div>
+      </div>
+
+      <div class="stepper-col">
+        <label for="reps">次數</label>
+        <input type="number" id="reps" inputmode="numeric" placeholder="0" oninput="updatePreview()" />
+        <div class="step-btns">
+          <button type="button" class="step-btn" onclick="stepVal('reps', -1)">-1</button>
+          <button type="button" class="step-btn" onclick="stepVal('reps', 1)">+1</button>
+        </div>
+      </div>
+
+      <div class="stepper-col">
+        <label for="sets">組數</label>
+        <input type="number" id="sets" inputmode="numeric" value="1" oninput="updatePreview()" />
+        <div class="step-btns">
+          <button type="button" class="step-btn" onclick="stepVal('sets', -1)">-1</button>
+          <button type="button" class="step-btn" onclick="stepVal('sets', 1)">+1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <span>預估 1RM：<strong id="est1RM">-</strong> kg</span>
+      <span>本筆容量：<strong id="previewVolume">0</strong> kg</span>
+    </div>
+
+    <button type="button" class="btn-primary" onclick="addSetToExercise()">＋ 加入此組到動作</button>
+  </div>
+
+  <div class="list-header">
+    <h2 id="listTitle">當日訓練明細</h2>
+    <div class="action-links">
+      <button type="button" class="link-btn" onclick="exportData()">備份</button>
+      <button type="button" class="link-btn" onclick="importData()">還原</button>
+      <button type="button" class="link-btn danger" onclick="clearSelectedDay()">清空當日</button>
+    </div>
+  </div>
+
+  <div id="recordList"></div>
+
+  <script>
+    const STORAGE_KEY = 'workout_grouped_v1';
+    // 資料結構：[{ id, date: 'YYYY-MM-DD', name: '槓鈴臥推', entries: [{ weight, reps, sets, volume }] }]
+    let groups = [];
+    try {
+      groups = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch (e) {
+      groups = [];
+    }
+
+    function getTodayISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    let selectedDate = getTodayISO();
+    document.getElementById('targetDate').value = selectedDate;
+
+    function jumpToToday() {
+      selectedDate = getTodayISO();
+      document.getElementById('targetDate').value = selectedDate;
+      render();
+    }
+
+    function onDateInputChange() {
+      const val = document.getElementById('targetDate').value;
+      if (val) {
+        selectedDate = val;
+        render();
+      }
+    }
+
+    function onHistorySelectChange() {
+      const val = document.getElementById('historyDateSelect').value;
+      if (val) {
+        selectedDate = val;
+        document.getElementById('targetDate').value = selectedDate;
+        render();
+      }
+    }
+
+    function setExercise(name) {
+      document.getElementById('exerciseName').value = name;
+    }
+
+    function stepVal(id, delta) {
+      const el = document.getElementById(id);
+      const current = parseFloat(el.value) || 0;
+      const minVal = id === 'sets' ? 1 : 0;
+      const next = Math.max(minVal, Math.round((current + delta) * 10) / 10);
+      el.value = next;
+      updatePreview();
+    }
+
+    function copyLastSet() {
+      const dayGroups = groups.filter(g => g.date === selectedDate);
+      const sourceGroup = dayGroups[0] || groups[0];
+      if (!sourceGroup || !sourceGroup.entries || sourceGroup.entries.length === 0) {
+        alert('目前還沒有上一組紀錄可以套用！');
+        return;
+      }
+      const lastEntry = sourceGroup.entries[sourceGroup.entries.length - 1];
+      document.getElementById('exerciseName').value = sourceGroup.name;
+      document.getElementById('weight').value = lastEntry.weight;
+      document.getElementById('reps').value = lastEntry.reps;
+      document.getElementById('sets').value = lastEntry.sets;
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const w = parseFloat(document.getElementById('weight').value) || 0;
+      const r = parseInt(document.getElementById('reps').value, 10) || 0;
+      const s = parseInt(document.getElementById('sets').value, 10) || 0;
+
+      const vol = Math.round(w * r * s * 10) / 10;
+      document.getElementById('previewVolume').textContent = vol.toLocaleString();
+
+      if (w > 0 && r > 0) {
+        const rm = r === 1 ? w : Math.round(w * (1 + r / 30) * 10) / 10;
+        document.getElementById('est1RM').textContent = rm;
+      } else {
+        document.getElementById('est1RM').textContent = '-';
+      }
+    }
+
+    function addSetToExercise() {
+      const name = document.getElementById('exerciseName').value.trim();
+      const weight = parseFloat(document.getElementById('weight').value);
+      const reps = parseInt(document.getElementById('reps').value, 10);
+      const sets = parseInt(document.getElementById('sets').value, 10);
+
+      if (!name) {
+        alert('請輸入或點選動作名稱！');
+        return;
+      }
+      if (isNaN(weight) || weight < 0 || isNaN(reps) || reps <= 0 || isNaN(sets) || sets <= 0) {
+        alert('請輸入正確的重量、次數與組數！');
+        return;
+      }
+
+      const entryVol = Math.round(weight * reps * sets * 10) / 10;
+      const newEntry = { weight, reps, sets, volume: entryVol };
+
+      let targetGroup = groups.find(g => g.date === selectedDate && g.name === name);
+      if (targetGroup) {
+        targetGroup.entries.push(newEntry);
+      } else {
+        groups.unshift({
+          id: Date.now(),
+          date: selectedDate,
+          name,
+          entries: [newEntry]
+        });
+      }
+
+      saveAndRender();
+      document.getElementById('reps').value = '';
+      document.getElementById('sets').value = '1';
+      updatePreview();
+    }
+
+    function undoLastEntry(groupId) {
+      const target = groups.find(g => g.id === groupId);
+      if (!target || target.entries.length === 0) return;
+      target.entries.pop();
+      if (target.entries.length === 0) {
+        groups = groups.filter(g => g.id !== groupId);
+      }
+      saveAndRender();
+    }
+
+    function deleteGroup(groupId) {
+      if (!confirm('確定要刪除這個動作整行的紀錄嗎？')) return;
+      groups = groups.filter(g => g.id !== groupId);
+      saveAndRender();
+    }
+
+    function clearSelectedDay() {
+      const dayGroups = groups.filter(g => g.date === selectedDate);
+      if (dayGroups.length === 0) return;
+      if (!confirm(`確定要清空 ${selectedDate} 的所有訓練紀錄嗎？`)) return;
+      groups = groups.filter(g => g.date !== selectedDate);
+      saveAndRender();
+    }
+
+    function formatEntriesText(entries) {
+      return entries.map(e => {
+        if (e.sets > 1) {
+          return `${e.weight}*${e.reps}×${e.sets}組`;
+        }
+        return `${e.weight}*${e.reps}`;
+      }).join('、');
+    }
+
+    function getGroupTotals(entries) {
+      let vol = 0;
+      let totalSets = 0;
+      entries.forEach(e => {
+        vol += e.volume;
+        totalSets += e.sets;
+      });
+      return {
+        vol: Math.round(vol * 10) / 10,
+        totalSets
+      };
+    }
+
+    function updateHistorySelect() {
+      const selectEl = document.getElementById('historyDateSelect');
+      const datesSet = new Set(groups.map(g => g.date));
+      const sortedDates = Array.from(datesSet).sort((a, b) => b.localeCompare(a));
+
+      let optionsHtml = '<option value="">歷史日期選單</option>';
+      sortedDates.forEach(d => {
+        const selectedAttr = d === selectedDate ? ' selected' : '';
+        optionsHtml += `<option value="${d}"${selectedAttr}>${d}</option>`;
+      });
+      selectEl.innerHTML = optionsHtml;
+    }
+
+    function exportData() {
+      const raw = JSON.stringify(groups);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(raw).then(() => {
+          alert('已將備份資料複製到剪貼簿，請貼到備忘錄保存！');
+        }).catch(() => {
+          prompt('請手動全選並複製以下備份碼：', raw);
+        });
+      } else {
+        prompt('請手動全選並複製以下備份碼：', raw);
+      }
+    }
+
+    function importData() {
+      const raw = prompt('請貼上先前複製的備份碼：');
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw.trim());
+        if (!Array.isArray(parsed)) throw new Error('格式不符');
+        groups = parsed;
+        saveAndRender();
+        alert('紀錄已成功還原！');
+      } catch (e) {
+        alert('備份碼格式不正確，無法還原。');
+      }
+    }
+
+    function saveAndRender() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
+      } catch (e) {}
+      render();
+    }
+
+    function render() {
+      updateHistorySelect();
+      document.getElementById('listTitle').textContent = `${selectedDate} 訓練明細`;
+
+      const dayGroups = groups.filter(g => g.date === selectedDate);
+      let dayVol = 0;
+      let daySets = 0;
+
+      const listEl = document.getElementById('recordList');
+      listEl.innerHTML = '';
+
+      if (dayGroups.length === 0) {
+        listEl.innerHTML = `<div class="empty-tip">${selectedDate} 尚無訓練紀錄，輸入動作與組數開始吧！</div>`;
+      } else {
+        dayGroups.forEach(g => {
+          const totals = getGroupTotals(g.entries);
+          dayVol += totals.vol;
+          daySets += totals.totalSets;
+
+          const div = document.createElement('div');
+          div.className = 'record-item';
+          div.innerHTML = `
+            <div class="record-info">
+              <h3>${g.name}</h3>
+              <div class="record-sets-line">${formatEntriesText(g.entries)}</div>
+            </div>
+            <div class="record-right">
+              <div class="record-vol">${totals.vol.toLocaleString()} kg</div>
+              <div class="row-btns">
+                <button type="button" class="small-act-btn" onclick="undoLastEntry(${g.id})">退一組</button>
+                <button type="button" class="small-act-btn del" onclick="deleteGroup(${g.id})">刪行</button>
+              </div>
+            </div>
+          `;
+          listEl.appendChild(div);
+        });
+      }
+
+      document.getElementById('dayVolume').textContent = `${Math.round(dayVol * 10) / 10} kg`;
+      document.getElementById('daySets').textContent = `${daySets} 組`;
+    }
+
+    render();
+  </script>
+</body>
+</html>
