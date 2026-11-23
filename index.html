@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>重訓容量紀錄</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #121214; color: #f4f4f6; font-family: -apple-system, sans-serif; }
+    h1 { font-size: 22px; margin: 0 0 14px; }
+    .box { background: #1e1e24; border: 1px solid #2e2e36; border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+    .sum { display: flex; justify-content: space-around; text-align: center; }
+    .sum strong { display: block; font-size: 22px; color: #ff6b35; margin-top: 4px; }
+    label { display: block; font-size: 13px; color: #a0a0aa; margin: 10px 0 6px; }
+    input { width: 100%; box-sizing: border-box; background: #141418; color: #fff; border: 1px solid #33333d; border-radius: 10px; padding: 12px; font-size: 17px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag { background: #2a2a33; color: #eee; border: none; border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .vol-line { margin-top: 12px; text-align: right; font-size: 15px; color: #ff6b35; font-weight: bold; }
+    button.add { width: 100%; margin-top: 12px; padding: 14px; border: none; border-radius: 12px; background: #ff6b35; color: #fff; font-size: 17px; font-weight: bold; }
+    .item { background: #1e1e24; border: 1px solid #2e2e36; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .item small { color: #a0a0aa; display: block; margin-top: 3px; }
+    .item strong { color: #ff6b35; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>重訓容量紀錄</h1>
+
+  <div class="box sum">
+    <div><span>今日總容量</span><strong id="totalVol">0 kg</strong></div>
+    <div><span>今日總組數</span><strong id="totalSets">0 組</strong></div>
+  </div>
+
+  <div class="box">
+    <label>動作名稱</label>
+    <input id="name" type="text" placeholder="輸入或點下方動作" />
+    <div class="tags">
+      <button type="button" class="tag" onclick="pick('槓鈴臥推')">槓鈴臥推</button>
+      <button type="button" class="tag" onclick="pick('槓鈴深蹲')">槓鈴深蹲</button>
+      <button type="button" class="tag" onclick="pick('負重引體向上')">負重引體向上</button>
+      <button type="button" class="tag" onclick="pick('哈克RDL')">哈克RDL</button>
+      <button type="button" class="tag" onclick="pick('保加利亞分腿蹲')">保加利亞分腿蹲</button>
+    </div>
+
+    <div class="row3">
+      <div><label>重量(kg)</label><input id="w" type="number" inputmode="decimal" oninput="calc()" /></div>
+      <div><label>次數</label><input id="r" type="number" inputmode="numeric" oninput="calc()" /></div>
+      <div><label>組數</label><input id="s" type="number" inputmode="numeric" value="1" oninput="calc()" /></div>
+    </div>
+
+    <div class="vol-line">本筆容量：<span id="nowVol">0</span> kg</div>
+    <button type="button" class="add" onclick="saveItem()">新增紀錄</button>
+  </div>
+
+  <div id="list"></div>
+
+  <script>
+    var KEY = 'gym_vol_data_v2';
+    var data = [];
+    try {
+      data = JSON.parse(localStorage.getItem(KEY) || '[]');
+    } catch (e) {
+      data = [];
+    }
+
+    function todayKey() {
+      var d = new Date();
+      return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    }
+
+    function pick(txt) {
+      document.getElementById('name').value = txt;
+    }
+
+    function getVol() {
+      var w = parseFloat(document.getElementById('w').value) || 0;
+      var r = parseInt(document.getElementById('r').value, 10) || 0;
+      var s = parseInt(document.getElementById('s').value, 10) || 0;
+      return Math.round(w * r * s * 10) / 10;
+    }
+
+    function calc() {
+      document.getElementById('nowVol').textContent = getVol();
+    }
+
+    function saveItem() {
+      var name = document.getElementById('name').value.replace(/^\s+|\s+$/g, '');
+      var w = parseFloat(document.getElementById('w').value);
+      var r = parseInt(document.getElementById('r').value, 10);
+      var s = parseInt(document.getElementById('s').value, 10);
+
+      if (!name) { alert('請先輸入或點選動作名稱'); return; }
+      if (!(w >= 0) || !(r > 0) || !(s > 0)) { alert('請輸入重量、次數與組數'); return; }
+
+      var vol = Math.round(w * r * s * 10) / 10;
+      data.unshift({
+        id: new Date().getTime(),
+        day: todayKey(),
+        name: name,
+        w: w,
+        r: r,
+        s: s,
+        vol: vol
+      });
+
+      try {
+        localStorage.setItem(KEY, JSON.stringify(data));
+      } catch (e) {}
+
+      document.getElementById('r').value = '';
+      document.getElementById('s').value = '1';
+      calc();
+      showList();
+    }
+
+    function removeItem(id) {
+      var next = [];
+      for (var i = 0; i < data.length; i++) {
+        if (data[i].id !== id) next.push(data[i]);
+      }
+      data = next;
+      try {
+        localStorage.setItem(KEY, JSON.stringify(data));
+      } catch (e) {}
+      showList();
+    }
+
+    function showList() {
+      var box = document.getElementById('list');
+      var tKey = todayKey();
+      var sumVol = 0;
+      var sumSets = 0;
+      var html = '';
+
+      for (var i = 0; i < data.length; i++) {
+        var row = data[i];
+        if (row.day === tKey) {
+          sumVol += row.vol;
+          sumSets += row.s;
+        }
+        html += '<div class="item">' +
+          '<div><strong>' + row.name + '</strong>' +
+          '<small>' + row.day + ' ｜ ' + row.w + ' kg × ' + row.r + ' 次 × ' + row.s + ' 組</small></div>' +
+          '<div style="text-align:right;"><strong>' + row.vol + ' kg</strong><br>' +
+          '<button type="button" style="margin-top:4px;background:#2c2c35;color:#ccc;border:none;border-radius:6px;padding:3px 8px;" onclick="removeItem(' + row.id + ')">刪除</button></div>' +
+          '</div>';
+      }
+
+      box.innerHTML = html || '<div style="text-align:center;color:#888;padding:20px;">尚無紀錄</div>';
+      document.getElementById('totalVol').textContent = (Math.round(sumVol * 10) / 10) + ' kg';
+      document.getElementById('totalSets').textContent = sumSets + ' 組';
+    }
+
+    showList();
+  </script>
+</body>
+</html>
