@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="健身與飲食" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='38' fill='%23121214'/%3E%3Crect x='26' y='78' width='128' height='24' rx='8' fill='%23ff6b35'/%3E%3Crect x='36' y='52' width='18' height='76' rx='6' fill='%23ff6b35'/%3E%3Crect x='126' y='52' width='18' height='76' rx='6' fill='%23ff6b35'/%3E%3Crect x='16' y='62' width='14' height='56' rx='5' fill='%23f4f4f6'/%3E%3Crect x='150' y='62' width='14' height='56' rx='5' fill='%23f4f4f6'/%3E%3C/svg%3E" />
+  <title>健身與飲食管理</title>
+  <style>
+    :root {
+      --bg: #121214;
+      --card: #1e1e24;
+      --input-bg: #2a2a32;
+      --accent: #ff6b35;
+      --accent-soft: rgba(255, 107, 53, 0.16);
+      --text: #f4f4f6;
+      --muted: #9ca3af;
+      --border: #32323c;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 0 14px 48px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Top Nav */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(18, 18, 20, 0.94);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 2px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .menu-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .page-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .nav-right-spacer { width: 40px; }
+
+    /* Drawer Menu */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 90;
+      display: none;
+    }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 265px;
+      background: #18181d;
+      border-right: 1px solid var(--border);
+      z-index: 100;
+      padding: 22px 14px;
+      transform: translateX(-100%);
+      transition: transform 0.22s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 0 10px 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .nav-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 13px 12px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+    .nav-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .drawer-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Common Cards & Forms */
+    .view { display: none; }
+    .view.active { display: block; }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 15px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      padding: 10px 12px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-secondary {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 12px;
+      width: auto;
+    }
+
+    /* Workout View */
+    .date-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .volume-banner {
+      background: linear-gradient(135deg, #272220, #1e1e24);
+      border: 1px solid rgba(255, 107, 53, 0.35);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .volume-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .log-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+    .log-row:last-child { border-bottom: none; }
+    .log-main { font-size: 15px; font-weight: 600; }
+    .log-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .del-btn {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Nutrition Target View */
+    .result-box {
+      background: #17171c;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .macro-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .macro-pill {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 9px 4px;
+      border: 1px solid var(--border);
+    }
+    .macro-pill .val {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .macro-pill .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Diet Tracker View */
+    .rem-hero {
+      text-align: center;
+      padding: 6px 0 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .rem-kcal {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.15;
+    }
+    .rem-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .prog-row { margin-bottom: 10px; }
+    .prog-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .prog-track {
+      height: 8px;
+      background: var(--input-bg);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.25s ease;
+    }
+    .prog-fill.over { background: var(--danger); }
+
+    .chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 12px;
+    }
+    .chip {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 99px;
+      cursor: pointer;
+    }
+    .chip.fm { border-color: rgba(56, 189, 248, 0.45); }
+    .chip:active { background: var(--accent); border-color: var(--accent); }
+
+    .manual-box {
+      background: #17171c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      display: none;
+    }
+    .manual-box.open { display: block; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 8px 0 10px;
+    }
+    .check-row input { width: auto; }
+    .hint-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="topbar">
+    <button class="menu-btn" onclick="toggleDrawer(true)" aria-label="開啟選單">☰</button>
+    <div class="page-title" id="headerTitle">訓練容量紀錄</div>
+    <div class="nav-right-spacer"></div>
+  </header>
+
+  <!-- Slide-out Navigation Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawer(false)"></div>
+  <aside class="drawer" id="drawer">
+    <div>
+      <div class="drawer-header">功能選單</div>
+      <button class="nav-item active" id="nav-workout" onclick="switchView('workout')">🏋️ 訓練容量紀錄</button>
+      <button class="nav-item" id="nav-target" onclick="switchView('target')">🎯 營養目標計算機</button>
+      <button class="nav-item" id="nav-diet" onclick="switchView('diet')">🍱 每日飲食追蹤</button>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn-secondary" style="flex:1" onclick="exportAllData()">匯出備份</button>
+      <button class="btn-secondary" style="flex:1" onclick="importAllData()">還原資料</button>
+    </div>
+  </aside>
+
+  <!-- ==================== VIEW 1: WORKOUT LOG ==================== -->
+  <section class="view active" id="view-workout">
+    <div class="date-bar">
+      <input type="date" id="workoutDate" onchange="renderWorkouts()" style="flex:1" />
+      <button class="btn-secondary" onclick="setToday('workoutDate', renderWorkouts)">今天</button>
+    </div>
+
+    <div class="volume-banner">
+      <div>
+        <div style="font-size:12px;color:var(--muted)">當日總訓練容量</div>
+        <div class="volume-num" id="totalVolume">0 kg</div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:var(--muted)" id="workoutCountText">0 組動作</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">新增訓練組數</div>
+      <div style="margin-bottom:10px">
+        <label>動作名稱</label>
+        <input type="text" id="exName" placeholder="例如：槓鈴深蹲、負重引體" list="exSuggestions" />
+        <datalist id="exSuggestions">
+          <option value="槓鈴深蹲">
+          <option value="平板槓鈴臥推">
+          <option value="傳統硬舉">
+          <option value="負重引體向上">
+          <option value="哈克深蹲">
+          <option value="啞鈴肩推">
+          <option value="滑輪下拉">
+        </datalist>
+      </div>
+      <div class="grid-3">
+        <div>
+          <label>重量 (kg)</label>
+          <input type="number" id="exWeight" step="0.5" placeholder="60" inputmode="decimal" />
+        </div>
+        <div>
+          <label>次數 (reps)</label>
+          <input type="number" id="exReps" placeholder="8" inputmode="numeric" />
+        </div>
+        <div>
+          <label>組數 (sets)</label>
+          <input type="number" id="exSets" value="1" min="1" inputmode="numeric" />
+        </div>
+      </div>
+      <button class="btn" onclick="addWorkout()">加入紀錄</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>當日動作明細（同重量次數自動合併）</span>
+      </div>
+      <div id="workoutList"></div>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 2: NUTRITION TARGET ==================== -->
+  <section class="view" id="view-target">
+    <div class="card">
+      <div class="card-title">身體數據與增減脂目標</div>
+      <div class="grid-2">
+        <div>
+          <label>性別</label>
+          <select id="tGender">
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+          </select>
+        </div>
+        <div>
+          <label>年齡</label>
+          <input type="number" id="tAge" value="26" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="grid-3">
+        <div>
+          <label>身高 (cm)</label>
+          <input type="number" id="tHeight" value="177" step="0.1" inputmode="decimal" />
+        </div>
+        <div>
+          <label>體重 (kg)</label>
+          <input type="number" id="tWeight" value="69" step="0.1" inputmode="decimal" />
+        </div>
+        <div>
+          <label>體脂率 (%)</label>
+          <input type="number" id="tBf" value="11" step="0.1" placeholder="選填" inputmode="decimal" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label>每週訓練活動量</label>
+          <select id="tActivity">
+            <option value="1.375">輕度活動（每週1~3天）</option>
+            <option value="1.55" selected>中度訓練（每週3~5天）</option>
+            <option value="1.725">高強度訓練（每週6~7天）</option>
+          </select>
+        </div>
+        <div>
+          <label>飲食目標</label>
+          <select id="tGoal">
+            <option value="bulk_lean" selected>乾淨增肌 (+300 kcal)</option>
+            <option value="bulk_aggressive">積極增肌 (+450 kcal)</option>
+            <option value="maintain">維持體態 (TDEE)</option>
+            <option value="cut">減脂期 (-400 kcal)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="calculateAndSaveTarget()">計算並套用為每日目標</button>
+
+      <div class="result-box" id="targetResultBox">
+        <div style="font-size:13px;color:var(--muted)">目前設定的每日目標（已同步至飲食追蹤）</div>
+        <div class="macro-grid">
+          <div class="macro-pill">
+            <div class="val" id="resKcal">2850</div>
+            <div class="lbl">熱量 kcal</div>
+          </div>
+          <div class="macro-pill">
+            <div class="val" id="resP">152g</div>
+            <div class="lbl">蛋白質</div>
+          </div>
+          <div class="macro-pill">
+            <div class="val" id="resC">395g</div>
+            <div class="lbl">碳水</div>
+          </div>
+          <div class="macro-pill">
+            <div class="val" id="resF">73g</div>
+            <div class="lbl">脂肪</div>
+          </div>
+        </div>
+        <div class="hint-text" id="resNote">蛋白質約以體重 2.2g/kg 設定，脂肪佔總熱量約 23%，其餘由碳水化合物補足訓練能量。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 3: DAILY DIET TRACKER ==================== -->
+  <section class="view" id="view-diet">
+    <div class="date-bar">
+      <input type="date" id="dietDate" onchange="renderDiet()" style="flex:1" />
+      <button class="btn-secondary" onclick="setToday('dietDate', renderDiet)">今天</button>
+    </div>
+
+    <!-- Remaining Dashboard -->
+    <div class="card">
+      <div class="rem-hero">
+        <div style="font-size:12px;color:var(--muted)" id="remTitle">今日剩餘可攝取熱量</div>
+        <div class="rem-kcal" id="remKcal">2,850 kcal</div>
+        <div class="rem-sub" id="consumedSummary">已攝取 0 / 目標 2,850 kcal</div>
+      </div>
+
+      <div class="prog-row">
+        <div class="prog-head">
+          <span>蛋白質 (Protein)</span>
+          <span id="remPText">剩 152g (0 / 152g)</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="barP" style="width:0%"></div></div>
+      </div>
+
+      <div class="prog-row">
+        <div class="prog-head">
+          <span>碳水化合物 (Carbs)</span>
+          <span id="remCText">剩 395g (0 / 395g)</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="barC" style="width:0%"></div></div>
+      </div>
+
+      <div class="prog-row" style="margin-bottom:0">
+        <div class="prog-head">
+          <span>脂肪 (Fat)</span>
+          <span id="remFText">剩 73g (0 / 73g)</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="barF" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Quick Food Input + FamilyMart Presets -->
+    <div class="card">
+      <div class="card-title">
+        <span>快速記錄飲食</span>
+        <button class="btn-secondary btn-sm" onclick="toggleManualBox()">＋ 手動輸入營養素</button>
+      </div>
+
+      <input type="text" id="foodQuery" placeholder="輸入如：白飯 200克、漢堡一顆、全家嫩雞胸 2份" />
+      <div class="hint-text">支援多品項用逗號或頓號隔開，自動辨識克數/顆/份/瓶與全家常見品項。</div>
+
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">全家便利商店 & 常用快選（點擊直接加入）：</div>
+      <div class="chips-wrap" id="quickChips"></div>
+
+      <button class="btn" onclick="parseAndAddFood()">計算並加入今日飲食</button>
+
+      <!-- Manual Custom Food Drawer -->
+      <div class="manual-box" id="manualBox">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent)">自訂食物 / 手動輸入營養素</div>
+        <div style="margin-bottom:8px">
+          <label>食物名稱</label>
+          <input type="text" id="mName" placeholder="例如：全家烤蛋白餐盒、排骨便當" />
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>蛋白質 (g)</label>
+            <input type="number" id="mP" step="0.1" placeholder="0" inputmode="decimal" oninput="autoCalcManualKcal()" />
+          </div>
+          <div>
+            <label>碳水 (g)</label>
+            <input type="number" id="mC" step="0.1" placeholder="0" inputmode="decimal" oninput="autoCalcManualKcal()" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>脂肪 (g)</label>
+            <input type="number" id="mF" step="0.1" placeholder="0" inputmode="decimal" oninput="autoCalcManualKcal()" />
+          </div>
+          <div>
+            <label>熱量 kcal（可自動換算）</label>
+            <input type="number" id="mKcal" step="1" placeholder="自動計算" inputmode="numeric" />
+          </div>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" id="mSavePreset" checked />
+          <span>同時存入上方「常用快選按鈕」方便下次一鍵點選</span>
+        </label>
+        <button class="btn" onclick="addManualFood()">加入自訂食物</button>
+      </div>
+    </div>
+
+    <!-- Daily Food List -->
+    <div class="card">
+      <div class="card-title">當日已攝取明細</div>
+      <div id="dietList"></div>
+    </div>
+  </section>
+
+  <script>
+    // ==================== STORAGE KEYS ====================
+    const KEY_WORKOUTS = 'fit_hub_workouts_v1';
+    const KEY_TARGET   = 'fit_hub_target_v1';
+    const KEY_DIET     = 'fit_hub_diet_v1';
+    const KEY_CUSTOM_FOODS = 'fit_hub_custom_foods_v1';
+
+    // 遷移舊版 workout-log 資料（若存在）
+    (function migrateLegacyWorkouts() {
+      const legacy = localStorage.getItem('workoutLogs_v1') || localStorage.getItem('workoutLogs');
+      if (legacy && !localStorage.getItem(KEY_WORKOUTS)) {
+        localStorage.setItem(KEY_WORKOUTS, legacy);
+      }
+    })();
+
+    // ==================== BUILT-IN FOOD & FAMILYMART DB ====================
+    // perGram: true 代表基準為每 100g；perGram: false 代表每 1 份/顆/瓶
+    const BUILTIN_FOODS = [
+      // 全家便利商店高蛋白與常見品項
+      { keys: ['全家嫩雞胸', '全家雞胸', '原味嫩雞胸', '黑胡椒嫩雞胸', '法式香草嫩雞胸', '全家舒肥雞'], label: '全家嫩雞胸 1份', perGram: false, kcal: 118, p: 22.5, c: 1.5, f: 2.2, fm: true },
+      { keys: ['全家烤蛋白餐盒', '烤蛋白餐盒'], label: '全家烤蛋白餐盒', perGram: false, kcal: 545, p: 36.0, c: 64.0, f: 15.5, fm: true },
+      { keys: ['全家健身g肉餐盒', '健身g肉餐盒', 'g肉餐盒'], label: '全家健身G肉餐盒', perGram: false, kcal: 510, p: 38.0, c: 58.0, f: 13.0, fm: true },
+      { keys: ['全家烤雞握便當', '烤雞握便當'], label: '全家烤雞握便當', perGram: false, kcal: 385, p: 17.5, c: 52.0, f: 11.5, fm: true },
+      { keys: ['全家大口飯糰', '大口飯糰', '法式烤雞飯糰', '義式香草雞飯糰'], label: '全家大口烤雞飯糰', perGram: false, kcal: 335, p: 14.5, c: 46.0, f: 9.8, fm: true },
+      { keys: ['全家茶葉蛋', '茶葉蛋'], label: '全家茶葉蛋 1顆', perGram: false, kcal: 75, p: 7.0, c: 1.0, f: 5.0, fm: true },
+      { keys: ['全家溫泉蛋', '溫泉蛋', '溏心蛋'], label: '全家溫泉蛋 1顆', perGram: false, kcal: 72, p: 6.5, c: 1.2, f: 4.8, fm: true },
+      { keys: ['全家無糖豆漿', '無糖高纖豆漿', '光泉無加糖豆漿', '無糖豆漿'], label: '全家無糖高纖豆漿 1瓶', perGram: false, kcal: 162, p: 15.8, c: 10.5, f: 7.2, fm: true },
+      { keys: ['全家烤地瓜', '夯番薯', '地瓜'], label: '全家夯番薯 (中條約150g)', perGram: false, kcal: 185, p: 2.2, c: 43.0, f: 0.4, fm: true },
+      { keys: ['全家香蕉', '香蕉'], label: '香蕉 1根', perGram: false, kcal: 105, p: 1.3, c: 27.0, f: 0.3, fm: true },
+      { keys: ['全家美式', '美式咖啡', '黑咖啡'], label: '全家冰/熱美式 (無糖)', perGram: false, kcal: 15, p: 0.5, c: 2.5, f: 0.2, fm: true },
+      { keys: ['全家拿鐵', '無糖拿鐵', '經典拿鐵'], label: '全家經典拿鐵 (大杯無糖)', perGram: false, kcal: 165, p: 8.5, c: 12.5, f: 9.0, fm: true },
+
+      // 基礎食材與常見外食（支援克數換算）
+      { keys: ['白飯', '米飯'], label: '白飯', perGram: true, kcal: 130, p: 2.5, c: 28.5, f: 0.3, fm: false },
+      { keys: ['雞胸肉', '水煮雞胸'], label: '雞胸肉', perGram: true, kcal: 115, p: 23.0, c: 0.0, f: 2.0, fm: false },
+      { keys: ['雞腿排', '去皮雞腿'], label: '去皮雞腿肉', perGram: true, kcal: 155, p: 19.5, c: 0.0, f: 8.2, fm: false },
+      { keys: ['牛排', '牛肉'], label: '牛肉 (一般瘦肉)', perGram: true, kcal: 185, p: 21.0, c: 0.0, f: 11.0, fm: false },
+      { keys: ['燕麥', '大燕麥片'], label: '燕麥片', perGram: true, kcal: 375, p: 13.0, c: 66.0, f: 7.0, fm: false },
+      { keys: ['漢堡', '牛肉堡', '雞腿堡'], label: '漢堡 1顆', perGram: false, kcal: 520, p: 26.0, c: 45.0, f: 25.0, fm: false },
+      { keys: ['水煮蛋', '荷包蛋', '蛋'], label: '雞蛋 1顆', perGram: false, kcal: 75, p: 6.5, c: 0.6, f: 5.2, fm: false },
+      { keys: ['乳清', '乳清蛋白', '蛋白粉'], label: '乳清蛋白 1份', perGram: false, kcal: 125, p: 24.0, c: 3.5, f: 1.5, fm: false },
+      { keys: ['吐司', '白吐司', '全麥吐司'], label: '吐司 1片', perGram: false, kcal: 140, p: 4.5, c: 25.0, f: 2.2, fm: false },
+      { keys: ['雞腿便當', '炸雞腿便當'], label: '雞腿便當 1個', perGram: false, kcal: 880, p: 36.0, c: 105.0, f: 34.0, fm: false },
+      { keys: ['排骨便當'], label: '排骨便當 1個', perGram: false, kcal: 840, p: 32.0, c: 102.0, f: 32.0, fm: false }
+    ];
+
+    // ==================== NAVIGATION & INIT ====================
+    function getTodayStr() {
+      const d = new Date();
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().split('T')[0];
+    }
+
+    function setToday(inputId, callback) {
+      document.getElementById(inputId).value = getTodayStr();
+      if (callback) callback();
+    }
+
+    function toggleDrawer(open) {
+      document.getElementById('drawer').classList.toggle('open', open);
+      document.getElementById('drawerBackdrop').classList.toggle('open', open);
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('view-' + viewName).classList.add('active');
+      document.getElementById('nav-' + viewName).classList.add('active');
+
+      const titles = {
+        workout: '訓練容量紀錄',
+        target: '營養目標計算機',
+        diet: '每日飲食追蹤'
+      };
+      document.getElementById('headerTitle').textContent = titles[viewName];
+      toggleDrawer(false);
+
+      if (viewName === 'diet') renderDiet();
+      if (viewName === 'workout') renderWorkouts();
+    }
+
+    // ==================== VIEW 1: WORKOUT LOGIC ====================
+    function loadWorkouts() {
+      try { return JSON.parse(localStorage.getItem(KEY_WORKOUTS)) || []; }
+      catch { return []; }
+    }
+
+    function saveWorkouts(list) {
+      localStorage.setItem(KEY_WORKOUTS, JSON.stringify(list));
+    }
+
+    function addWorkout() {
+      const date = document.getElementById('workoutDate').value || getTodayStr();
+      const name = document.getElementById('exName').value.trim();
+      const weight = parseFloat(document.getElementById('exWeight').value);
+      const reps = parseInt(document.getElementById('exReps').value, 10);
+      const sets = parseInt(document.getElementById('exSets').value, 10) || 1;
+
+      if (!name || isNaN(weight) || isNaN(reps) || reps <= 0 || sets <= 0) {
+        alert('請填寫完整的動作名稱、重量、次數與組數');
+        return;
+      }
+
+      const logs = loadWorkouts();
+      logs.push({ id: Date.now(), date, name, weight, reps, sets });
+      saveWorkouts(logs);
+
+      document.getElementById('exReps').value = '';
+      document.getElementById('exSets').value = '1';
+      renderWorkouts();
+    }
+
+    function deleteWorkoutGroup(date, name, weight, reps) {
+      const logs = loadWorkouts().filter(item =>
+        !(item.date === date && item.name === name && Number(item.weight) === Number(weight) && Number(item.reps) === Number(reps))
+      );
+      saveWorkouts(logs);
+      renderWorkouts();
+    }
+
+    function renderWorkouts() {
+      const date = document.getElementById('workoutDate').value || getTodayStr();
+      const dayLogs = loadWorkouts().filter(item => item.date === date);
+
+      let totalVol = 0;
+      let totalSets = 0;
+      const grouped = {};
+
+      dayLogs.forEach(item => {
+        const w = Number(item.weight);
+        const r = Number(item.reps);
+        const s = Number(item.sets) || 1;
+        totalVol += w * r * s;
+        totalSets += s;
+
+        const key = `${item.name}__${w}__${r}`;
+        if (!grouped[key]) {
+          grouped[key] = { name: item.name, weight: w, reps: r, sets: 0 };
+        }
+        grouped[key].sets += s;
+      });
+
+      document.getElementById('totalVolume').textContent = `${totalVol.toLocaleString()} kg`;
+      document.getElementById('workoutCountText').textContent = `共 ${totalSets} 組`;
+
+      const listEl = document.getElementById('workoutList');
+      const groups = Object.values(grouped);
+      if (groups.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px 0">這天還沒有訓練紀錄</div>';
+        return;
+      }
+
+      listEl.innerHTML = groups.map(g => {
+        const vol = g.weight * g.reps * g.sets;
+        return `
+          <div class="log-row">
+            <div>
+              <div class="log-main">${escapeHtml(g.name)}　<span style="color:var(--accent)">${g.weight}*${g.reps}×${g.sets}</span></div>
+              <div class="log-sub">單項容量：${vol.toLocaleString()} kg</div>
+            </div>
+            <button class="del-btn" onclick="deleteWorkoutGroup('${date}', '${escapeAttr(g.name)}', ${g.weight}, ${g.reps})">刪除</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== VIEW 2: NUTRITION TARGET LOGIC ====================
+    function getTarget() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY_TARGET));
+        if (saved && saved.kcal) return saved;
+      } catch {}
+      return { kcal: 2850, p: 152, c: 395, f: 73, gender: 'male', age: 26, height: 177, weight: 69, bf: 11, activity: 1.55, goal: 'bulk_lean' };
+    }
+
+    function loadTargetToForm() {
+      const t = getTarget();
+      document.getElementById('tGender').value = t.gender || 'male';
+      document.getElementById('tAge').value = t.age || 26;
+      document.getElementById('tHeight').value = t.height || 177;
+      document.getElementById('tWeight').value = t.weight || 69;
+      document.getElementById('tBf').value = t.bf || '';
+      document.getElementById('tActivity').value = String(t.activity || 1.55);
+      document.getElementById('tGoal').value = t.goal || 'bulk_lean';
+      updateTargetDisplay(t);
+    }
+
+    function calculateAndSaveTarget() {
+      const gender = document.getElementById('tGender').value;
+      const age = parseFloat(document.getElementById('tAge').value) || 26;
+      const height = parseFloat(document.getElementById('tHeight').value) || 170;
+      const weight = parseFloat(document.getElementById('tWeight').value) || 65;
+      const bf = parseFloat(document.getElementById('tBf').value);
+      const activity = parseFloat(document.getElementById('tActivity').value) || 1.55;
+      const goal = document.getElementById('tGoal').value;
+
+      // 若有填體脂率則用 Katch-McArdle（對有重訓肌肉量者更準），否則用 Mifflin-St Jeor
+      let bmr;
+      if (!isNaN(bf) && bf > 2 && bf < 60) {
+        const lbm = weight * (1 - bf / 100);
+        bmr = 370 + 21.6 * lbm;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age + (gender === 'male' ? 5 : -161);
+      }
+
+      const tdee = bmr * activity;
+      const deltaMap = {
+        bulk_lean: 300,
+        bulk_aggressive: 450,
+        maintain: 0,
+        cut: -400
+      };
+      const targetKcal = Math.round(tdee + (deltaMap[goal] || 0));
+
+      // 蛋白質：減脂期抓 2.3g/kg 護肌肉，增肌/維持抓 2.1g/kg
+      const pFactor = goal === 'cut' ? 2.3 : 2.1;
+      const targetP = Math.round(weight * pFactor);
+      // 脂肪：佔總熱量 23%（最低不低於體重 0.8g/kg）
+      const targetF = Math.max(Math.round(weight * 0.8), Math.round((targetKcal * 0.23) / 9));
+      // 碳水：剩餘熱量全分配給碳水
+      const remainKcalForCarbs = Math.max(200, targetKcal - targetP * 4 - targetF * 9);
+      const targetC = Math.round(remainKcalForCarbs / 4);
+
+      const data = {
+        kcal: targetKcal,
+        p: targetP,
+        c: targetC,
+        f: targetF,
+        gender, age, height, weight,
+        bf: isNaN(bf) ? '' : bf,
+        activity, goal
+      };
+      localStorage.setItem(KEY_TARGET, JSON.stringify(data));
+      updateTargetDisplay(data);
+      alert(`已更新每日目標：${targetKcal} kcal（蛋白質 ${targetP}g / 碳水 ${targetC}g / 脂肪 ${targetF}g）`);
+    }
+
+    function updateTargetDisplay(t) {
+      document.getElementById('resKcal').textContent = t.kcal;
+      document.getElementById('resP').textContent = t.p + 'g';
+      document.getElementById('resC').textContent = t.c + 'g';
+      document.getElementById('resF').textContent = t.f + 'g';
+    }
+
+    // ==================== VIEW 3: DIET TRACKER LOGIC ====================
+    function loadDietLogs() {
+      try { return JSON.parse(localStorage.getItem(KEY_DIET)) || []; }
+      catch { return []; }
+    }
+
+    function saveDietLogs(list) {
+      localStorage.setItem(KEY_DIET, JSON.stringify(list));
+    }
+
+    function loadCustomFoods() {
+      try { return JSON.parse(localStorage.getItem(KEY_CUSTOM_FOODS)) || []; }
+      catch { return []; }
+    }
+
+    function saveCustomFoods(list) {
+      localStorage.setItem(KEY_CUSTOM_FOODS, JSON.stringify(list));
+    }
+
+    function renderQuickChips() {
+      const container = document.getElementById('quickChips');
+      const custom = loadCustomFoods();
+      const defaultChips = [
+        { label: '全家嫩雞胸 1份', query: '全家嫩雞胸 1份', fm: true },
+        { label: '全家茶葉蛋 2顆', query: '全家茶葉蛋 2顆', fm: true },
+        { label: '全家無糖高纖豆漿', query: '全家無糖高纖豆漿 1瓶', fm: true },
+        { label: '全家烤蛋白餐盒', query: '全家烤蛋白餐盒 1份', fm: true },
+        { label: '全家大口烤雞飯糰', query: '全家大口烤雞飯糰 1顆', fm: true },
+        { label: '全家夯番薯', query: '全家夯番薯 1份', fm: true },
+        { label: '白飯 200g', query: '白飯 200g', fm: false },
+        { label: '乳清蛋白 1份', query: '乳清蛋白 1份', fm: false }
+      ];
+
+      let html = defaultChips.map(c =>
+        `<button class="chip ${c.fm ? 'fm' : ''}" onclick="quickInsert('${escapeAttr(c.query)}')">${escapeHtml(c.label)}</button>`
+      ).join('');
+
+      html += custom.map((c, idx) =>
+        `<button class="chip" style="border-color:var(--accent)" onclick="addCustomPresetDirectly(${idx})">★ ${escapeHtml(c.name)}</button>`
+      ).join('');
+
+      container.innerHTML = html;
+    }
+
+    function quickInsert(text) {
+      document.getElementById('foodQuery').value = text;
+      parseAndAddFood();
+    }
+
+    function addCustomPresetDirectly(idx) {
+      const custom = loadCustomFoods();
+      const item = custom[idx];
+      if (!item) return;
+      const date = document.getElementById('dietDate').value || getTodayStr();
+      const logs = loadDietLogs();
+      logs.push({
+        id: Date.now(),
+        date,
+        name: item.name,
+        kcal: item.kcal,
+        p: item.p,
+        c: item.c,
+        f: item.f
+      });
+      saveDietLogs(logs);
+      renderDiet();
+    }
+
+    function chineseNumToFloat(str) {
+      const map = { '半': 0.5, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+      return map[str] || parseFloat(str);
+    }
+
+    function parseAndAddFood() {
+      const raw = document.getElementById('foodQuery').value.trim();
+      if (!raw) {
+        alert('請輸入食物品項，或點擊上方快選按鈕');
+        return;
+      }
+
+      const date = document.getElementById('dietDate').value || getTodayStr();
+      const parts = raw.split(/[,，、\n+＋]+/).map(s => s.trim()).filter(Boolean);
+      const customFoods = loadCustomFoods();
+      const logs = loadDietLogs();
+      const unmatched = [];
+      let addedCount = 0;
+
+      parts.forEach((part, idx) => {
+        // 先比對使用者自訂食物庫
+        const customMatch = customFoods.find(cf => part.includes(cf.name));
+        if (customMatch) {
+          const countMatch = part.match(/(\d+(?:\.\d+)?|[半一二兩三四五六七八九十])\s*(?:份|個|顆|瓶|碗|杯)?$/);
+          const mult = countMatch ? (chineseNumToFloat(countMatch[1]) || 1) : 1;
+          logs.push({
+            id: Date.now() + idx,
+            date,
+            name: mult === 1 ? customMatch.name : `${customMatch.name} ×${mult}`,
+            kcal: Math.round(customMatch.kcal * mult),
+            p: round1(customMatch.p * mult),
+            c: round1(customMatch.c * mult),
+            f: round1(customMatch.f * mult)
+          });
+          addedCount++;
+          return;
+        }
+
+        // 比對內建食物庫（長關鍵字優先）
+        let matchedFood = null;
+        let matchedKeyLen = 0;
+        for (const food of BUILTIN_FOODS) {
+          for (const k of food.keys) {
+            if (part.includes(k) && k.length > matchedKeyLen) {
+              matchedFood = food;
+              matchedKeyLen = k.length;
+            }
+          }
+        }
+
+        if (!matchedFood) {
+          unmatched.push(part);
+          return;
+        }
+
+        // 解析克數或份數
+        const gramMatch = part.match(/(\d+(?:\.\d+)?)\s*(?:g|G|克|公克)/);
+        const unitMatch = part.match(/(\d+(?:\.\d+)?|[半一二兩三四五六七八九十])\s*(?:份|顆|個|瓶|碗|杯|片|根|條)/);
+        const plainNumMatch = part.match(/(\d+(?:\.\d+)?)/);
+
+        let mult = 1;
+        let displayLabel = matchedFood.label;
+
+        if (matchedFood.perGram) {
+          const grams = gramMatch ? parseFloat(gramMatch[1]) : (plainNumMatch ? parseFloat(plainNumMatch[1]) : 100);
+          mult = grams / 100;
+          displayLabel = `${matchedFood.label} ${grams}g`;
+        } else {
+          if (gramMatch) {
+            // 若原本是按份算但使用者硬打克數，預設以 100g 基準粗估
+            mult = parseFloat(gramMatch[1]) / 100;
+            displayLabel = `${matchedFood.label} (${gramMatch[1]}g)`;
+          } else if (unitMatch) {
+            mult = chineseNumToFloat(unitMatch[1]) || 1;
+            displayLabel = mult === 1 ? matchedFood.label : `${matchedFood.label} ×${mult}`;
+          } else if (plainNumMatch) {
+            mult = parseFloat(plainNumMatch[1]) || 1;
+            displayLabel = mult === 1 ? matchedFood.label : `${matchedFood.label} ×${mult}`;
+          }
+        }
+
+        logs.push({
+          id: Date.now() + idx,
+          date,
+          name: displayLabel,
+          kcal: Math.round(matchedFood.kcal * mult),
+          p: round1(matchedFood.p * mult),
+          c: round1(matchedFood.c * mult),
+          f: round1(matchedFood.f * mult)
+        });
+        addedCount++;
+      });
+
+      if (addedCount > 0) {
+        saveDietLogs(logs);
+        document.getElementById('foodQuery').value = unmatched.join('、');
+        renderDiet();
+      }
+
+      if (unmatched.length > 0) {
+        document.getElementById('manualBox').classList.add('open');
+        document.getElementById('mName').value = unmatched[0];
+        alert(`「${unmatched.join('、')}」不在內建資料庫中，已為你展開下方「手動輸入營養素」框，填寫一次並勾選儲存就能加入快選！`);
+      }
+    }
+
+    function toggleManualBox() {
+      document.getElementById('manualBox').classList.toggle('open');
+    }
+
+    function autoCalcManualKcal() {
+      const p = parseFloat(document.getElementById('mP').value) || 0;
+      const c = parseFloat(document.getElementById('mC').value) || 0;
+      const f = parseFloat(document.getElementById('mF').value) || 0;
+      const calc = Math.round(p * 4 + c * 4 + f * 9);
+      if (calc > 0) {
+        document.getElementById('mKcal').value = calc;
+      }
+    }
+
+    function addManualFood() {
+      const name = document.getElementById('mName').value.trim();
+      const p = parseFloat(document.getElementById('mP').value) || 0;
+      const c = parseFloat(document.getElementById('mC').value) || 0;
+      const f = parseFloat(document.getElementById('mF').value) || 0;
+      let kcal = parseFloat(document.getElementById('mKcal').value);
+
+      if (!name) {
+        alert('請填寫食物名稱');
+        return;
+      }
+      if (isNaN(kcal) || kcal <= 0) {
+        kcal = Math.round(p * 4 + c * 4 + f * 9);
+      }
+      if (kcal <= 0 && p === 0 && c === 0 && f === 0) {
+        alert('請至少填寫熱量或任一營養素克數');
+        return;
+      }
+
+      const date = document.getElementById('dietDate').value || getTodayStr();
+      const logs = loadDietLogs();
+      logs.push({
+        id: Date.now(),
+        date,
+        name,
+        kcal: Math.round(kcal),
+        p: round1(p),
+        c: round1(c),
+        f: round1(f)
+      });
+      saveDietLogs(logs);
+
+      if (document.getElementById('mSavePreset').checked) {
+        const custom = loadCustomFoods();
+        const existIdx = custom.findIndex(x => x.name === name);
+        const presetObj = { name, kcal: Math.round(kcal), p: round1(p), c: round1(c), f: round1(f) };
+        if (existIdx >= 0) custom[existIdx] = presetObj;
+        else custom.push(presetObj);
+        saveCustomFoods(custom);
+        renderQuickChips();
+      }
+
+      document.getElementById('mName').value = '';
+      document.getElementById('mP').value = '';
+      document.getElementById('mC').value = '';
+      document.getElementById('mF').value = '';
+      document.getElementById('mKcal').value = '';
+      document.getElementById('manualBox').classList.remove('open');
+      renderDiet();
+    }
+
+    function deleteDietItem(id) {
+      const logs = loadDietLogs().filter(item => item.id !== id);
+      saveDietLogs(logs);
+      renderDiet();
+    }
+
+    function renderDiet() {
+      const date = document.getElementById('dietDate').value || getTodayStr();
+      const target = getTarget();
+      const dayLogs = loadDietLogs().filter(item => item.date === date);
+
+      let sumKcal = 0, sumP = 0, sumC = 0, sumF = 0;
+      dayLogs.forEach(item => {
+        sumKcal += Number(item.kcal) || 0;
+        sumP += Number(item.p) || 0;
+        sumC += Number(item.c) || 0;
+        sumF += Number(item.f) || 0;
+      });
+
+      sumKcal = Math.round(sumKcal);
+      sumP = round1(sumP);
+      sumC = round1(sumC);
+      sumF = round1(sumF);
+
+      const diffKcal = target.kcal - sumKcal;
+      const remTitle = document.getElementById('remTitle');
+      const remKcalEl = document.getElementById('remKcal');
+
+      if (diffKcal >= 0) {
+        remTitle.textContent = '今日剩餘可攝取熱量';
+        remKcalEl.textContent = `${diffKcal.toLocaleString()} kcal`;
+        remKcalEl.style.color = 'var(--accent)';
+      } else {
+        remTitle.textContent = '今日已超出目標熱量';
+        remKcalEl.textContent = `+${Math.abs(diffKcal).toLocaleString()} kcal`;
+        remKcalEl.style.color = 'var(--danger)';
+      }
+
+      document.getElementById('consumedSummary').textContent = `已攝取 ${sumKcal.toLocaleString()} / 目標 ${target.kcal.toLocaleString()} kcal`;
+
+      updateMacroProgress('P', sumP, target.p);
+      updateMacroProgress('C', sumC, target.c);
+      updateMacroProgress('F', sumF, target.f);
+
+      const listEl = document.getElementById('dietList');
+      if (dayLogs.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px 0">這天還沒有飲食紀錄</div>';
+        return;
+      }
+
+      listEl.innerHTML = dayLogs.map(item => `
+        <div class="log-row">
+          <div>
+            <div class="log-main">${escapeHtml(item.name)}　<span style="color:var(--accent)">${item.kcal} kcal</span></div>
+            <div class="log-sub">蛋白質 ${item.p}g ｜ 碳水 ${item.c}g ｜ 脂肪 ${item.f}g</div>
+          </div>
+          <button class="del-btn" onclick="deleteDietItem(${item.id})">刪除</button>
+        </div>
+      `).join('');
+    }
+
+    function updateMacroProgress(key, current, target) {
+      const rem = round1(target - current);
+      const textEl = document.getElementById('rem' + key + 'Text');
+      const barEl = document.getElementById('bar' + key);
+      const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+
+      if (rem >= 0) {
+        textEl.textContent = `剩 ${rem}g (${current} / ${target}g)`;
+        barEl.classList.remove('over');
+      } else {
+        textEl.textContent = `超 ${Math.abs(rem)}g (${current} / ${target}g)`;
+        barEl.classList.add('over');
+      }
+      barEl.style.width = pct + '%';
+    }
+
+    // ==================== BACKUP & RESTORE ====================
+    function exportAllData() {
+      const payload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        workouts: loadWorkouts(),
+        target: getTarget(),
+        diet: loadDietLogs(),
+        customFoods: loadCustomFoods()
+      };
+      const json = JSON.stringify(payload);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json)
+          .then(() => alert('已將所有訓練與飲食紀錄複製到剪貼簿，請貼到備忘錄保存！'))
+          .catch(() => prompt('請全選複製以下備份代碼：', json));
+      } else {
+        prompt('請全選複製以下備份代碼：', json);
+      }
+    }
+
+    function importAllData() {
+      const raw = prompt('請貼上先前複製的備份代碼（支援新版與舊版訓練備份）：');
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw.trim());
+        if (Array.isArray(parsed)) {
+          // 相容舊版純訓練陣列備份
+          saveWorkouts(parsed);
+        } else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.workouts)) saveWorkouts(parsed.workouts);
+          if (parsed.target) localStorage.setItem(KEY_TARGET, JSON.stringify(parsed.target));
+          if (Array.isArray(parsed.diet)) saveDietLogs(parsed.diet);
+          if (Array.isArray(parsed.customFoods)) saveCustomFoods(parsed.customFoods);
+        }
+        loadTargetToForm();
+        renderQuickChips();
+        renderWorkouts();
+        renderDiet();
+        alert('資料還原成功！');
+      } catch {
+        alert('備份格式不正確，請確認有完整複製。');
+      }
+    }
+
+    // ==================== UTILS ====================
+    function round1(num) {
+      return Math.round(num * 10) / 10;
+    }
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+    }
+    function escapeAttr(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Boot
+    document.getElementById('workoutDate').value = getTodayStr();
+    document.getElementById('dietDate').value = getTodayStr();
+    loadTargetToForm();
+    renderQuickChips();
+    renderWorkouts();
+    renderDiet();
+  </script>
+</body>
+</html>
